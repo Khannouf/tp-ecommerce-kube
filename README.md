@@ -1,6 +1,6 @@
 # doc
 
-# 🏗️ Architecture
+## 🏗️ Architecture
 
 Le projet est composé de trois microservices principaux :
 
@@ -11,12 +11,115 @@ Le projet est composé de trois microservices principaux :
 ## 📁 Structure du Projet
 
 ```
-├── product-service/     # Service de gestion des produits
-├── cart-service/        # Service de gestion des paniers
-├── order-service/       # Service de gestion des commandes
-└── deploy/             # Configurations de déploiement
-    ├── local/          # Docker Compose pour développement local
-    └── local-k8s/      # Manifestes Kubernetes
+ecommerce-microservices/
+│
+├── product-service/                    # 🛍️ Microservice Produits
+│   ├── src/
+│   │   ├── product/
+│   │   │   ├── entities/
+│   │   │   │   └── product.entity.ts
+│   │   │   ├── dto/
+│   │   │   │   └── get-product.dto.ts
+│   │   │   ├── product.controller.ts
+│   │   │   ├── product.service.ts
+│   │   │   └── product.module.ts
+│   │   ├── stock/
+│   │   │   ├── entities/
+│   │   │   │   └── stock.entity.ts
+│   │   │   ├── stock.service.ts
+│   │   │   └── stock.module.ts
+│   │   ├── database/
+│   │   │   ├── migrations/
+│   │   │   ├── seeds/
+│   │   │   └── database.service.ts
+│   │   ├── config.ts
+│   │   ├── app.module.ts
+│   │   └── main.ts
+│   ├── deploy/
+│   │   ├── local/
+│   │   │   ├── docker-compose.yml
+│   │   │   └── init-db.sql
+│   │   └── local-k8s/
+│   │       ├── deployment.yaml
+│   │       ├── service.yaml
+│   │       ├── configmap.yaml
+│   │       ├── secret.yaml
+│   │       └── httproute.yaml
+│   ├── Dockerfile
+│   ├── Makefile
+│   └── package.json
+│
+├── cart-service/                       # 🛒 Microservice Panier
+│   ├── src/
+│   │   ├── cart/
+│   │   │   ├── entities/
+│   │   │   │   ├── cart.entity.ts
+│   │   │   │   └── cart-product.entity.ts
+│   │   │   ├── dto/
+│   │   │   │   ├── create-cart.dto.ts
+│   │   │   │   └── update-cart.dto.ts
+│   │   │   ├── cart.controller.ts
+│   │   │   ├── cart.service.ts
+│   │   │   └── cart.module.ts
+│   │   ├── database/
+│   │   │   ├── migrations/
+│   │   │   └── database.service.ts
+│   │   ├── config.ts
+│   │   ├── app.module.ts
+│   │   └── main.ts
+│   ├── deploy/
+│   │   ├── local/
+│   │   │   ├── docker-compose.yml
+│   │   │   └── init-db.sql
+│   │   └── local-k8s/
+│   │       ├── deployment.yaml
+│   │       ├── service.yaml
+│   │       ├── configmap.yaml
+│   │       ├── secret.yaml
+│   │       └── httproute.yaml
+│   ├── Dockerfile
+│   └── package.json
+│
+├── order-service/                      # 📦 Microservice Commandes
+│   ├── src/
+│   │   ├── order/
+│   │   │   ├── entities/
+│   │   │   │   ├── order.entity.ts
+│   │   │   │   └── order-product.entity.ts
+│   │   │   ├── dto/
+│   │   │   │   ├── create-order.dto.ts
+│   │   │   │   └── update-order.dto.ts
+│   │   │   ├── order.controller.ts
+│   │   │   ├── order.service.ts
+│   │   │   └── order.module.ts
+│   │   ├── database/
+│   │   │   ├── migrations/
+│   │   │   └── database.service.ts
+│   │   ├── config.ts
+│   │   ├── app.module.ts
+│   │   └── main.ts
+│   ├── deploy/
+│   │   ├── local/
+│   │   │   ├── docker-compose.yml
+│   │   │   └── init-db.sql
+│   │   └── local-k8s/
+│   │       ├── deployment.yaml
+│   │       ├── service.yaml
+│   │       ├── configmap.yaml
+│   │       ├── secret.yaml
+│   │       └── httproute.yaml
+│   ├── Dockerfile
+│   └── package.json
+│
+└── README.md                           # Documentation principale
+
+# Caractéristiques d'architecture microservices :
+# ✅ Services indépendants avec leurs propres bases de données
+# ✅ Communication via HTTP/REST APIs
+# ✅ Déploiement containerisé séparé (Docker + Kubernetes)
+# ✅ Configuration et secrets isolés par service
+# ✅ Gestion des migrations de base de données autonome
+# ✅ Possibilité de scaler individuellement chaque service
 
 ```
 
@@ -58,7 +161,7 @@ Le projet est composé de trois microservices principaux :
 
 - Gestion des paniers utilisateur
 - Ajout/suppression de produits dans le panier
-- Validation de disponibilité des produits
+- Validation de disponibilité des produits via Product Service
 
 **Entités principales :**
 
@@ -69,8 +172,11 @@ Le projet est composé de trois microservices principaux :
 
 - `GET /cart` - Récupère le panier de l'utilisateur (via header `x-user-id`)
 - `GET /cart/getCart/:userId` - Récupère le panier par ID utilisateur
-- `PATCH /cart` - Met à jour le panier
+- `PATCH /cart` - Met à jour le panier (ajouter/modifier quantités)
 - `DELETE /cart` - Vide le panier
+
+**Validation des stocks :**
+Le Cart Service vérifie la disponibilité des produits via le champ `isAvailable` retourné par le Product Service, mais ne fait pas de validation de stock détaillée.
 
 **Base de données :** `cart`
 
@@ -79,8 +185,9 @@ Le projet est composé de trois microservices principaux :
 **Responsabilités :**
 
 - Création de commandes à partir des paniers
-- Validation des stocks avant commande
+- Validation des stocks et prix avant commande
 - Historique des commandes
+- Suppression automatique du panier après commande réussie
 
 **Entités principales :**
 
@@ -93,15 +200,28 @@ Le projet est composé de trois microservices principaux :
 - `GET /order` - Liste toutes les commandes
 - `GET /order/:id` - Détails d'une commande
 
+**Validation avancée :**
+L'Order Service effectue une validation complète :
+
+- Vérification des stocks disponibles pour chaque produit
+- Calcul du prix total
+- Validation des quantités demandées vs stock disponible
+
 **Base de données :** `order`
 
 ## 🔄 Communication Inter-Services
 
 Les services communiquent via HTTP/REST :
 
-- **Cart Service** → **Product Service** : Validation des produits et stocks
-- **Order Service** → **Product Service** : Validation des produits
-- **Order Service** → **Cart Service** : Récupération et suppression du panier
+- **Cart Service** → **Product Service** : Validation de l'existence et disponibilité des produits (champ `isAvailable`)
+- **Order Service** → **Product Service** : Validation des produits et vérification des stocks détaillés
+- **Order Service** → **Cart Service** : Récupération du panier complet et suppression après commande
+
+**Points importants :**
+
+- Le Cart Service vérifie uniquement la disponibilité basique (`isAvailable`)
+- L'Order Service effectue la validation de stock complète avant création de commande
+- La validation de stock se fait au niveau de l'Order Service pour éviter les conditions de course
 
 Configuration des URLs de services :
 
@@ -118,7 +238,7 @@ CART_SERVICE_URL: "http://cart-service.local.svc.cluster.local"
 ```sql
 -- Table products
 CREATE TABLE product (
-  id UUID PRIMARY KEY,
+  id INTEGER PRIMARY KEY AUTO_INCREMENT,
   name VARCHAR(255) NOT NULL,
   description TEXT NOT NULL,
   price DECIMAL(10,2) NOT NULL,
@@ -130,7 +250,7 @@ CREATE TABLE product (
 
 -- Table stock
 CREATE TABLE stock (
-  id INTEGER PRIMARY KEY,
+  id INTEGER PRIMARY KEY AUTO_INCREMENT,
   productId INTEGER REFERENCES product(id),
   quantity INTEGER NOT NULL
 );
@@ -194,7 +314,7 @@ CREATE TABLE orders_product (
 1. **Cloner le repository**
 
 ```bash
-git clone <>
+git clone <repository-url>
 cd ecommerce-microservices
 
 ```
@@ -265,11 +385,12 @@ npm run start:dev
 Chaque service dispose d'un Dockerfile multi-stage optimisé :
 
 ```bash
-# Build et push des images
+# Build et push des images - Product Service avec Makefile
 cd product-service
 make build/docker
 make push/docker
 
+# Build des autres services
 cd ../cart-service
 docker build -t cart-service:latest .
 
@@ -288,6 +409,11 @@ kubectl apply -f product-service/deploy/local-k8s/
 kubectl apply -f cart-service/deploy/local-k8s/
 kubectl apply -f order-service/deploy/local-k8s/
 
+# Charger les images dans kind (si nécessaire)
+kind load docker-image product-service:latest
+kind load docker-image cart-service:latest
+kind load docker-image order-service:latest
+
 ```
 
 **Configuration Kubernetes inclut :**
@@ -297,6 +423,20 @@ kubectl apply -f order-service/deploy/local-k8s/
 - Deployments avec init containers pour l'initialisation DB
 - Services pour l'exposition
 - HTTPRoutes pour le routage (Gateway API)
+
+## 🧪 Tests
+
+```bash
+# Tests unitaires
+npm run test
+
+# Tests e2e
+npm run test:e2e
+
+# Coverage
+npm run test:cov
+
+```
 
 ## 📊 Monitoring et Observabilité
 
@@ -350,6 +490,49 @@ npm run migration:revert
 
 ## 🔐 Sécurité
 
-- Authentification par header `x-user-id`
+- Authentification par header `x-user-id` (à remplacer par JWT en production)
 - Validation des données avec class-validator
 - Sanitization des requêtes SQL via TypeORM
+
+## 🚀 Roadmap
+
+### Améliorations Prévues
+
+- [ ]  Authentification JWT
+- [ ]  Service de notification
+- [ ]  Cache Redis
+- [ ]  Monitoring avec Prometheus
+- [ ]  API Gateway
+- [ ]  Event-driven architecture avec message queues
+- [ ]  Tests d'intégration automatisés
+
+### Optimisations
+
+- [ ]  Connection pooling
+- [ ]  Load balancing
+- [ ]  Circuit breaker pattern
+- [ ]  Retry policies
+
+## 🤝 Contribution
+
+1. Fork le projet
+2. Créer une branche feature (`git checkout -b feature/AmazingFeature`)
+3. Commit les changements (`git commit -m 'Add some AmazingFeature'`)
+4. Push vers la branche (`git push origin feature/AmazingFeature`)
+5. Ouvrir une Pull Request
+
+## 📝 Licence
+
+Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
+
+## 📞 Support
+
+Pour toute question ou problème :
+
+- Créer une issue sur GitHub
+- Consulter la documentation des services individuels
+- Vérifier les logs des containers en cas de problème
+
+---
+
+**Note** : Cette documentation couvre la version actuelle du projet. Consultez les README individuels de chaque service pour des détails spécifiques.
