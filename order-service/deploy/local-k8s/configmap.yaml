@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: order-service-config
+  namespace: local
+data:
+  NODE_ENV: "development"
+  DATABASE_HOST: "postgres-postgresql.infra.svc.cluster.local"
+  DATABASE_NAME: "order"
+  PRODUCT_SERVICE_URL: "http://products-service.local.svc.cluster.local"
+  CART_SERVICE_URL: "http://cart-service.local.svc.cluster.local"
