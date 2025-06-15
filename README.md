@@ -424,30 +424,6 @@ kind load docker-image order-service:latest
 - Services pour l'exposition
 - HTTPRoutes pour le routage (Gateway API)
 
-## 🧪 Tests
-
-```bash
-# Tests unitaires
-npm run test
-
-# Tests e2e
-npm run test:e2e
-
-# Coverage
-npm run test:cov
-
-```
-
-## 📊 Monitoring et Observabilité
-
-### Health Checks
-
-Chaque service expose un endpoint de health check configuré dans Kubernetes.
-
-### Logs
-
-Les services utilisent la console standard pour le logging, avec différents niveaux selon l'environnement.
-
 ## 🔧 Configuration
 
 ### Variables d'Environnement
